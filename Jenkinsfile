@@ -70,30 +70,27 @@ pipeline {
         }
         
         stage('SAST - SonarQube (C/C++)') {
-            steps {
-                script {
-                    def scannerHome = tool 'SonarScanner'
-                    withSonarQubeEnv('SonarQube') {
-                        sh '''
-                            echo "=== Running SonarQube Analysis ==="
-                            
-                            # Verify build-wrapper output exists
-                            if [ ! -d "bw-output" ]; then
-                                echo "ERROR: bw-output directory not found!"
-                                exit 1
-                            fi
-                            
-                            ls -la bw-output/
-                            
-                            ${scannerHome}/bin/sonar-scanner \
-                                -Dsonar.projectKey=cpp-app \
-                                -Dsonar.projectName='C++ App' \
-                                -Dsonar.cfamily.build-wrapper-output=bw-output \
-                                -Dsonar.sources=. \
-                                -Dsonar.exclusions=**/${BUILD_DIR}/**,**/cmake-build-debug/**,**/*.java,**/*.py \
-                                -Dsonar.host.url=${SONAR_HOST_URL} \
-                                -Dsonar.token=${SONAR_TOKEN}
-                        '''
+        steps {
+            script {
+                // Get the tool path properly in scripted pipeline
+                def scannerHome = tool name: 'SonarScanner', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
+                
+                echo "SonarScanner home: ${scannerHome}"
+                
+                withSonarQubeEnv('SonarQube') {
+                    sh """
+                        echo "=== Running SonarQube Analysis ==="
+                        ls -la bw-output/
+                        
+                        ${scannerHome}/bin/sonar-scanner \
+                            -Dsonar.projectKey=cpp-app \
+                            -Dsonar.projectName='C++ App' \
+                            -Dsonar.cfamily.build-wrapper-output=bw-output \
+                            -Dsonar.sources=. \
+                            -Dsonar.exclusions=**/build/**,**/cmake-build-debug/**,**/*.java,**/*.py \
+                            -Dsonar.host.url=\${SONAR_HOST_URL} \
+                            -Dsonar.token=\${SONAR_TOKEN}
+                    """
                     }
                 }
             }
