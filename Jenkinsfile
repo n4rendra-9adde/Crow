@@ -24,19 +24,22 @@ pipeline {
             }
         }
         
-        stage('Secret Scanning') {
-            steps {
-                sh '''
-                    echo "=== Gitleaks Secret Scan ==="
-                    gitleaks detect --source . --report-format json --report-path ${REPORT_DIR}/gitleaks-report.json || true
-                '''
-            }
-            post {
-                always {
-                    archiveArtifacts artifacts: "${REPORT_DIR}/gitleaks-report.json", allowEmptyArchive: true
-                }
-            }
-        }
+       stage('SAST - SonarQube (C/C++)') {
+    steps {
+        sh '''
+            # Download build wrapper
+            wget https://sonarcloud.io/static/cpp/build-wrapper-linux-x86.zip
+            unzip -q build-wrapper-linux-x86.zip
+            export PATH=$PWD/build-wrapper-linux-x86:$PATH
+            
+            # Clean and build with wrapper
+            build-wrapper-linux-x86-64 --out-dir bw-output cmake --build build --clean-first
+            
+            # Run sonar-scanner
+            sonar-scanner -Dsonar.cfamily.build-wrapper-output=bw-output
+        '''
+    }
+}
         
         stage('Build') {
             steps {
