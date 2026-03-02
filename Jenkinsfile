@@ -38,8 +38,8 @@ pipeline {
             # Run sonar-scanner
             sonar-scanner -Dsonar.cfamily.build-wrapper-output=bw-output
         '''
+        }
     }
-}
         
         stage('Build') {
             steps {
