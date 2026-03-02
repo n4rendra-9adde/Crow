@@ -1,5 +1,5 @@
 pipeline {
-    agent { label 'vm-agent' }
+    any agent 
     
     environment {
         REPORT_DIR = 'security-reports'
